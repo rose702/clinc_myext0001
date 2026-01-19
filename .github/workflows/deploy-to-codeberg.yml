@@ -46,10 +46,26 @@ jobs:
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
+          git config --global http.version HTTP/1.1
 
           # Build Basic Auth header to avoid putting credentials in the URL
           AUTH_HEADER=$(printf '%s:%s' "$CODEBERG_USERNAME" "$CODEBERG_TOKEN" | base64)
           TARGET_URL="https://codeberg.org/${CODEBERG_USERNAME}/clinc_myext0001.git"
 
-          # Push using Authorization header
-          git -c http.extraheader="Authorization: Basic ${AUTH_HEADER}" push -u "${TARGET_URL}" main
+          # Push using Authorization header with simple retries
+          ATTEMPTS=0
+          until [ $ATTEMPTS -ge 3 ]
+          do
+            if git -c http.extraheader="Authorization: Basic ${AUTH_HEADER}" push -u "${TARGET_URL}" main; then
+              echo "Push to Codeberg succeeded"
+              break
+            fi
+            ATTEMPTS=$((ATTEMPTS+1))
+            echo "Push failed, retrying in 5 seconds (attempt ${ATTEMPTS}/3)..."
+            sleep 5
+          done
+
+          if [ $ATTEMPTS -ge 3 ]; then
+            echo "Push to Codeberg failed after 3 attempts"
+            exit 1
+          fi
