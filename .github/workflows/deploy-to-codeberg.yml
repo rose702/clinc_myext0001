@@ -25,15 +25,15 @@ jobs:
             echo "CODEBERG_USERNAME or CODEBERG_TOKEN not set; skipping repo creation"
             exit 0
           fi
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${CODEBERG_TOKEN}" "${CODEBERG_BASE}/api/v1/repos/${CODEBERG_USERNAME}/${CODEBERG_REPO}")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CODEBERG_BASE}/api/v1/repos/${CODEBERG_USERNAME}/${CODEBERG_REPO}")
           if [ "$STATUS" = "404" ]; then
             echo "Codeberg repo not found; creating ${CODEBERG_USERNAME}/${CODEBERG_REPO}"
-            CREATE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${CODEBERG_TOKEN}" -H "Content-Type: application/json" -X POST "${CODEBERG_BASE}/api/v1/user/repos" -d "{\"name\":\"${CODEBERG_REPO}\",\"private\":false,\"description\":\"Mirror of GitHub repo\"}")
+            # Use Basic Auth (username:token) which is commonly required by Forgejo deployments
+            CREATE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -u "${CODEBERG_USERNAME}:${CODEBERG_TOKEN}" -H "Content-Type: application/json" -X POST "${CODEBERG_BASE}/api/v1/user/repos" -d "{\"name\":\"${CODEBERG_REPO}\",\"private\":false,\"description\":\"Mirror of GitHub repo\"}")
             if [ "$CREATE_STATUS" -ge 200 ] && [ "$CREATE_STATUS" -lt 300 ]; then
               echo "Codeberg repo created successfully"
             else
-              echo "Failed to create Codeberg repo (status ${CREATE_STATUS})"
-              exit 1
+              echo "Warning: Failed to create Codeberg repo via API (status ${CREATE_STATUS}). If this persists, create the repo manually and re-run."
             fi
           else
             echo "Codeberg repo exists (status ${STATUS})"
