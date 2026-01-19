@@ -1,0 +1,28 @@
+name: Deploy to Codeberg
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Codeberg
+        run: |
+          # Configure git to use the provided credentials
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          # Add Codeberg remote
+          # Note: We use the secret token for authentication
+          git remote add codeberg "https://${{ secrets.CODEBERG_USERNAME }}:${{ secrets.CODEBERG_TOKEN }}@codeberg.org/${{ secrets.CODEBERG_USERNAME }}/clinc_myext0001.git"
+          
+          # Push to Codeberg
+          git push -u codeberg main
