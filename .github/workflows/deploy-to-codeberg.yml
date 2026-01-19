@@ -14,15 +14,40 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Ensure Codeberg repo exists
+        env:
+          CODEBERG_USERNAME: ${{ secrets.CODEBERG_USERNAME }}
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+          CODEBERG_REPO: clinc_myext0001
+          CODEBERG_BASE: https://codeberg.org
+        run: |
+          if [ -z "$CODEBERG_USERNAME" ] || [ -z "$CODEBERG_TOKEN" ]; then
+            echo "CODEBERG_USERNAME or CODEBERG_TOKEN not set; skipping repo creation"
+            exit 0
+          fi
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${CODEBERG_TOKEN}" "${CODEBERG_BASE}/api/v1/repos/${CODEBERG_USERNAME}/${CODEBERG_REPO}")
+          if [ "$STATUS" = "404" ]; then
+            echo "Codeberg repo not found; creating ${CODEBERG_USERNAME}/${CODEBERG_REPO}"
+            CREATE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${CODEBERG_TOKEN}" -H "Content-Type: application/json" -X POST "${CODEBERG_BASE}/api/v1/user/repos" -d "{\"name\":\"${CODEBERG_REPO}\",\"private\":false,\"description\":\"Mirror of GitHub repo\"}")
+            if [ "$CREATE_STATUS" -ge 200 ] && [ "$CREATE_STATUS" -lt 300 ]; then
+              echo "Codeberg repo created successfully"
+            else
+              echo "Failed to create Codeberg repo (status ${CREATE_STATUS})"
+              exit 1
+            fi
+          else
+            echo "Codeberg repo exists (status ${STATUS})"
+          fi
+
       - name: Push to Codeberg
         run: |
           # Configure git to use the provided credentials
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          
+
           # Add Codeberg remote
           # Note: We use the secret token for authentication
           git remote add codeberg "https://${{ secrets.CODEBERG_USERNAME }}:${{ secrets.CODEBERG_TOKEN }}@codeberg.org/${{ secrets.CODEBERG_USERNAME }}/clinc_myext0001.git"
-          
+
           # Push to Codeberg
           git push -u codeberg main
