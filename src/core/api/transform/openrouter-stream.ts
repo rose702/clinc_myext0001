@@ -1,14 +1,14 @@
-import { Anthropic } from "@anthropic-ai/sdk"
+import type { Anthropic } from "@anthropic-ai/sdk"
 import {
 	CLAUDE_SONNET_1M_SUFFIX,
-	ModelInfo,
+	type ModelInfo,
 	OPENROUTER_PROVIDER_PREFERENCES,
 	openRouterClaudeSonnet41mModelId,
 	openRouterClaudeSonnet451mModelId,
 } from "@shared/api"
 import { shouldSkipReasoningForModel } from "@utils/model-utils"
-import OpenAI from "openai"
-import { ChatCompletionTool } from "openai/resources/chat/completions"
+import type OpenAI from "openai"
+import type { ChatCompletionTool } from "openai/resources/chat/completions"
 import { convertToOpenAiMessages, sanitizeGeminiMessages } from "./openai-format"
 import { convertToR1Format } from "./r1-format"
 import { getOpenAIToolParams } from "./tool-call-processor"
@@ -70,7 +70,7 @@ export async function createOpenRouterStream(
 		case "anthropic/claude-3-opus:beta":
 		case "minimax/minimax-m2":
 		case "minimax/minimax-m2.1":
-		case "minimax/minimax-m2.1-lightning":
+		case "minimax/minimax-m2.1-lightning": {
 			openAiMessages[0] = {
 				role: "system",
 				content: [
@@ -90,9 +90,7 @@ export async function createOpenRouterStream(
 					msg.content = [{ type: "text", text: msg.content }]
 				}
 				if (Array.isArray(msg.content)) {
-					// NOTE: this is fine since env details will always be added at the end. but if it weren't there, and the user added a image_url type message, it would pop a text part before it and then move it after to the end.
 					let lastTextPart = msg.content.filter((part) => part.type === "text").pop()
-
 					if (!lastTextPart) {
 						lastTextPart = { type: "text", text: "..." }
 						msg.content.push(lastTextPart)
@@ -102,6 +100,7 @@ export async function createOpenRouterStream(
 				}
 			})
 			break
+		}
 		default:
 			break
 	}
@@ -167,14 +166,15 @@ export async function createOpenRouterStream(
 		case "anthropic/claude-3.7-sonnet:beta":
 		case "anthropic/claude-3.7-sonnet:thinking":
 		case "anthropic/claude-3-7-sonnet":
-		case "anthropic/claude-3-7-sonnet:beta":
+		case "anthropic/claude-3-7-sonnet:beta": {
 			const budget_tokens = thinkingBudgetTokens || 0
 			const reasoningOn = budget_tokens !== 0
 			if (reasoningOn) {
-				temperature = undefined // extended thinking does not support non-1 temperature
+				temperature = undefined
 				reasoning = { max_tokens: budget_tokens }
 			}
 			break
+		}
 		default:
 			if (
 				thinkingBudgetTokens &&

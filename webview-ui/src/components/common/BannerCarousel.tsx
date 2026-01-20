@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, XIcon } from "lucide-react"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import type React from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRemark } from "react-remark"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -147,14 +148,13 @@ export const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
 	const showDismissButton = safeCurrentIndex === banners.length - 1 && currentBanner.onDismiss
 
 	return (
-		<div
+		<section
 			aria-label="Announcements"
 			aria-live="polite"
 			aria-roledescription="carousel"
 			className="mx-3 mb-3"
 			onMouseEnter={() => setIsPaused(true)}
-			onMouseLeave={() => setIsPaused(false)}
-			role="region">
+			onMouseLeave={() => setIsPaused(false)}>
 			{/* Card container */}
 			<div className="relative bg-muted rounded-sm">
 				{/* Dismiss button - only show on last card, dismisses ALL banners */}
@@ -166,7 +166,9 @@ export const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
 						onClick={(e) => {
 							e.stopPropagation()
 							// Dismiss ALL banners, not just the current one
-							banners.forEach((banner) => banner.onDismiss?.())
+							banners.forEach((banner) => {
+								banner.onDismiss?.()
+							})
 						}}
 						size="icon"
 						variant="icon">
@@ -213,7 +215,7 @@ export const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
 					</div>
 				)}
 			</div>
-		</div>
+		</section>
 	)
 }
 

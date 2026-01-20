@@ -705,7 +705,9 @@ export function groupLowStakesTools(groupedMessages: (ClineMessage | ClineMessag
 	const pendingTools: ClineMessage[] = []
 
 	const flushPending = () => {
-		pendingApiReq.forEach((m) => result.push(m))
+		pendingApiReq.forEach((m) => {
+			result.push(m)
+		})
 		pendingApiReq = []
 		pendingReasoning = []
 	}

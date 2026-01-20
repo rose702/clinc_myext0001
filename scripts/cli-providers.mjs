@@ -118,10 +118,10 @@ function extractDefaultModelIds(content) {
 	for (const regex of patterns) {
 		// Reset regex state for each pattern
 		regex.lastIndex = 0
-		let match
-
-		while ((match = regex.exec(content)) !== null) {
-			const [, providerPrefix, modelId] = match
+		for (;;) {
+			const m = regex.exec(content)
+			if (!m) break
+			const [, providerPrefix, modelId] = m
 			// Map prefix to provider ID (e.g., "anthropic" -> "anthropic", "openAiNative" -> "openai-native")
 			const providerId = providerPrefix
 				.replace(/([A-Z])/g, "-$1")
@@ -201,7 +201,9 @@ async function parseApiDefinitions() {
 	const validation = validateApiKeyMappings(providerIds, providerApiKeyMap)
 	console.log(chalk.green(`   Mapped API keys for ${validation.mappedProviders}/${validation.totalProviders} providers`))
 	if (validation.warnings.length > 0) {
-		validation.warnings.forEach((warning) => console.log(chalk.yellow(`   ${warning}`)))
+		validation.warnings.forEach((warning) => {
+			console.log(chalk.yellow(`   ${warning}`))
+		})
 	}
 
 	// Extract ApiHandlerOptions interface to understand configuration fields
@@ -728,12 +730,12 @@ func GetProviderDefinition(providerID string) (*ProviderDefinition, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	def, exists := definitions[providerID]
 	if !exists {
 		return nil, fmt.Errorf("provider %s not found", providerID)
 	}
-	
+
 	return &def, nil
 }
 
@@ -743,16 +745,16 @@ func GetProviderDefinitions() (map[string]ProviderDefinition, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	modelDefinitions, err := GetModelDefinitions()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	definitions := make(map[string]ProviderDefinition)
-	
+
 ${providerMetadata}
-	
+
 	return definitions, nil
 }
 
@@ -771,7 +773,7 @@ func GetProviderDisplayName(providerID string) string {
 	displayNames := map[string]string{
 ${providers.map((p) => `\t\t"${p}": "${getProviderDisplayName(p)}",`).join("\n")}
 	}
-	
+
 	if name, exists := displayNames[providerID]; exists {
 		return name
 	}
@@ -782,14 +784,14 @@ ${providers.map((p) => `\t\t"${p}": "${getProviderDisplayName(p)}",`).join("\n")
 // Uses category field as primary filter with override support
 func getFieldsByProvider(providerID string, allFields []ConfigField, required bool) []ConfigField {
 	var fields []ConfigField
-	
+
 	for _, field := range allFields {
 		fieldName := strings.ToLower(field.Name)
 		fieldCategory := strings.ToLower(field.Category)
 		providerName := strings.ToLower(providerID)
-		
+
 		isRelevant := false
-		
+
 		// Priority 1: Check manual overrides FIRST (from GetFieldOverride in this package)
 		if override, hasOverride := GetFieldOverride(providerID, field.Name); hasOverride {
 			isRelevant = override
@@ -814,12 +816,12 @@ func getFieldsByProvider(providerID string, allFields []ConfigField, required bo
 				}
 			}
 		}
-		
+
 		if isRelevant && field.Required == required {
 			fields = append(fields, field)
 		}
 	}
-	
+
 	return fields
 }
 `
@@ -1008,19 +1010,19 @@ const helperFunction = `
 // getFieldsByProvider filters configuration fields by provider and requirement
 func getFieldsByProvider(providerID string, allFields []ConfigField, required bool) []ConfigField {
 	var fields []ConfigField
-	
+
 	for _, field := range allFields {
 		// Check if field is relevant to this provider
 		fieldName := strings.ToLower(field.Name)
 		providerName := strings.ToLower(providerID)
-		
+
 		isRelevant := false
-		
+
 		// Direct provider name match
 		if strings.Contains(fieldName, providerName) {
 			isRelevant = true
 		}
-		
+
 		// Provider-specific field mappings
 		switch providerID {
 		case "anthropic":
@@ -1040,17 +1042,17 @@ func getFieldsByProvider(providerID string, allFields []ConfigField, required bo
 		case "gemini":
 			isRelevant = strings.Contains(fieldName, "gemini")
 		}
-		
+
 		// General fields that apply to all providers
 		if field.Category == "general" {
 			isRelevant = true
 		}
-		
+
 		if isRelevant && field.Required == required {
 			fields = append(fields, field)
 		}
 	}
-	
+
 	return fields
 }`
 
