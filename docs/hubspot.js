@@ -2,7 +2,7 @@
 ;(() => {
 	// Check if HubSpot script is already loaded to prevent duplicates
 	if (!document.getElementById("hs-script-loader")) {
-		var script = document.createElement("script")
+		const script = document.createElement("script")
 		script.type = "text/javascript"
 		script.id = "hs-script-loader"
 		script.async = true

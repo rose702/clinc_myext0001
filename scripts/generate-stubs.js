@@ -8,7 +8,7 @@ function traverse(container, output, prefix = "") {
 
 		if (kind === SyntaxKind.ModuleDeclaration) {
 			const name = node.getName().replace(/^['"]|['"]$/g, "")
-			var fullPrefix
+			let fullPrefix
 			if (prefix) {
 				fullPrefix = `${prefix}.${name}`
 			} else {
