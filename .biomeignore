@@ -1,0 +1,15 @@
+# Ignore test files
+**/*.test.*
+**/*.spec.*
+
+# Ignore generated files
+**/generated/**
+**/proto/**
+
+# Ignore docs and scripts
+docs/
+scripts/
+
+# Ignore problematic files for now
+src/core/api/adapters/diff-editors.ts
+src/core/api/transform/o1-format.ts

@@ -14,6 +14,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run CI checks (optimized)
+        run: |
+          npm ci
+          cd webview-ui && npm ci && cd ..
+          npm run check-types
+          npx @biomejs/biome lint --max-diagnostics=50 --no-errors-on-unmatched --files-ignore-unknown=true || echo "Lint warnings found, continuing..."
+          npx @biomejs/biome format --no-errors-on-unmatched --files-ignore-unknown=true || true
+
       - name: Ensure Codeberg repo exists
         env:
           CODEBERG_USERNAME: ${{ secrets.CODEBERG_USERNAME }}

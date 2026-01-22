@@ -89,7 +89,7 @@ export function convertToOpenAIResponsesInput(messages: ClineStorageMessage[]): 
 
 			for (const part of m.content) {
 				switch (part.type) {
-					case "thinking":
+					case "thinking": {
 						// Only include reasoning item if it has actual content (thinking text or summary)
 						// Empty reasoning items cause API errors: "Item 'rs_...' of type 'reasoning' was provided without its required following item"
 						const hasThinkingContent = part.thinking && part.thinking.trim().length > 0
@@ -118,7 +118,8 @@ export function convertToOpenAIResponsesInput(messages: ClineStorageMessage[]): 
 							} as ResponseReasoningItem)
 						}
 						break
-					case "redacted_thinking":
+					}
+					case "redacted_thinking": {
 						// Include reasoning item with encrypted content if it has a call_id
 						// Even if data is missing, we need to maintain the reasoning-function_call pairing
 						if (part.call_id && part.call_id.length > 0) {
@@ -134,7 +135,8 @@ export function convertToOpenAIResponsesInput(messages: ClineStorageMessage[]): 
 							assistantItems.push(reasoningItem as ResponseReasoningItem)
 						}
 						break
-					case "text":
+					}
+					case "text": {
 						// Message ID goes at the message level, not in the content
 						// The reasoning item and message can have different IDs - they just need to be adjacent
 						const messageItem: any = {
@@ -148,7 +150,8 @@ export function convertToOpenAIResponsesInput(messages: ClineStorageMessage[]): 
 						}
 						assistantItems.push(messageItem)
 						break
-					case "image":
+					}
+					case "image": {
 						// Message ID goes at the message level, not in the content
 						const imageItem: any = {
 							type: "message",
@@ -161,6 +164,7 @@ export function convertToOpenAIResponsesInput(messages: ClineStorageMessage[]): 
 						}
 						assistantItems.push(imageItem)
 						break
+					}
 					case "tool_use": {
 						// Function calls use call_id, not related to reasoning item ID
 						const call_id = part.call_id || part.id

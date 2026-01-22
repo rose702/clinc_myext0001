@@ -159,7 +159,7 @@ export class AIhubmixHandler implements ApiHandler {
 
 		for await (const chunk of stream) {
 			switch (chunk?.type) {
-				case "message_start":
+				case "message_start": {
 					const usage = chunk.message.usage
 					yield {
 						type: "usage",
@@ -169,6 +169,7 @@ export class AIhubmixHandler implements ApiHandler {
 						cacheReadTokens: usage.cache_read_input_tokens || undefined,
 					}
 					break
+				}
 				case "message_delta":
 					yield {
 						type: "usage",
